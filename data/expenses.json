@@ -1,75 +1,5 @@
 [
   {
-    "title": "Milk",
-    "amount": 100,
-    "category": "food",
-    "date": "2026-07-15",
-    "id": "21fcd702-a02f-4d88-b530-e9b50beb9cff",
-    "recurring": "none",
-    "lastGeneratedDate": "",
-    "deleted": true
-  },
-  {
-    "title": "Milk",
-    "amount": 100,
-    "category": "food",
-    "date": "2026-07-15",
-    "id": "fde2fcec-f622-4b38-918a-a189f41a0834",
-    "recurring": "none",
-    "lastGeneratedDate": "",
-    "deleted": true
-  },
-  {
-    "title": "Milk",
-    "amount": 100,
-    "category": "food",
-    "date": "2026-07-15",
-    "id": "39580fac-3bbd-4f56-8fb9-a6c8b8d805ff",
-    "recurring": "none",
-    "lastGeneratedDate": "",
-    "deleted": true
-  },
-  {
-    "title": "Apple",
-    "amount": 200,
-    "category": "food",
-    "date": "2026-07-15",
-    "id": "4cd9c80e-befc-4293-a704-f0316d85a3c7",
-    "recurring": "none",
-    "lastGeneratedDate": "",
-    "deleted": true
-  },
-  {
-    "title": "Tea",
-    "amount": 50,
-    "category": "food",
-    "date": "2026-07-15",
-    "id": "ad9b91fc-d438-4a89-85f9-4f84c930e11d",
-    "recurring": "none",
-    "lastGeneratedDate": "",
-    "deleted": true
-  },
-  {
-    "title": "   Milk   ",
-    "amount": "100",
-    "category": "FOOD",
-    "date": "2026-07-15",
-    "id": "a870f216-0695-4b4c-b398-4fe75d9bcee5",
-    "recurring": "none",
-    "lastGeneratedDate": "",
-    "deleted": true
-  },
-  {
-    "id": "7ff975eb-e635-4203-b6fd-32f564943215",
-    "title": "rty",
-    "amount": 45500,
-    "category": "flour",
-    "date": "2026-07-16",
-    "recurring": "none",
-    "lastGeneratedDate": "",
-    "deleted": true
-  },
-  {
     "id": "3595bf82-d378-417a-8f19-5f8312ecda78",
     "title": "rty",
     "amount": 454,
@@ -78,15 +8,5 @@
     "recurring": "none",
     "lastGeneratedDate": "",
     "deleted": false
-  },
-  {
-    "id": "a822a46a-5a07-4782-bf95-96c56c7de805",
-    "title": "yuio",
-    "amount": 56600,
-    "category": "health",
-    "date": "2026-07-16",
-    "recurring": "none",
-    "lastGeneratedDate": "",
-    "deleted": true
   }
 ]
