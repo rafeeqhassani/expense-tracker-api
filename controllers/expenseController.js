@@ -63,9 +63,30 @@ function deleteExpenseController(request, response) {
   apiResponse(response, 200, expense, "Expense deleted successfully");
 }
 
+function restoreExpenseController(request, response) {
+  const id = request.params.id;
+
+  const expenses = getExpenses();
+
+  const expense = expenses.find((item) => item && item.id == id);
+
+  if (!expense) {
+    const error = new Error("Expense not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  expense.deleted = false;
+
+  saveExpenses(expenses);
+
+  apiResponse(response, 200, expense, "Expense restored successfully");
+}
+
 module.exports = {
   getExpensesController,
   createExpenseController,
   updateExpenseController,
   deleteExpenseController,
+  restoreExpenseController,
 };

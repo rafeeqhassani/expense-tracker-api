@@ -6,6 +6,7 @@ const {
   createExpenseController,
   updateExpenseController,
   deleteExpenseController,
+  restoreExpenseController,
 } = require("../controllers/expenseController");
 
 const asyncHandler = require("../utils/asyncHandler");
@@ -27,5 +28,10 @@ router.put(
 );
 
 router.delete("/api/expenses/:id", asyncHandler(deleteExpenseController));
+
+router.patch(
+  "/api/expenses/:id/restore",
+  asyncHandler(restoreExpenseController),
+);
 
 module.exports = router;
