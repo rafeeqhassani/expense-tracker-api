@@ -83,10 +83,29 @@ function restoreExpenseController(request, response) {
   apiResponse(response, 200, expense, "Expense restored successfully");
 }
 
+function clearAllExpensesController(request, response) {
+  const expenses = getExpenses();
+
+  const updatedExpenses = expenses.map((expense) => ({
+    ...expense,
+    deleted: true,
+  }));
+
+  saveExpenses(updatedExpenses);
+
+  apiResponse(
+    response,
+    200,
+    updatedExpenses,
+    "All expenses cleared successfully",
+  );
+}
+
 module.exports = {
   getExpensesController,
   createExpenseController,
   updateExpenseController,
   deleteExpenseController,
   restoreExpenseController,
+  clearAllExpensesController,
 };
