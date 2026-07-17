@@ -14,30 +14,16 @@ const asyncHandler = require("../utils/asyncHandler");
 
 const validateExpense = require("../middleware/validateExpense");
 
-router.get("/api/expenses", asyncHandler(getExpensesController));
+router.get("/", asyncHandler(getExpensesController));
 
-router.post(
-  "/api/expenses",
-  validateExpense,
-  asyncHandler(createExpenseController),
-);
+router.post("/", validateExpense, asyncHandler(createExpenseController));
 
-router.put(
-  "/api/expenses/:id",
-  validateExpense,
-  asyncHandler(updateExpenseController),
-);
+router.put("/:id", validateExpense, asyncHandler(updateExpenseController));
 
-router.delete("/api/expenses/:id", asyncHandler(deleteExpenseController));
+router.delete("/:id", asyncHandler(deleteExpenseController));
 
-router.patch(
-  "/api/expenses/:id/restore",
-  asyncHandler(restoreExpenseController),
-);
+router.patch("/:id/restore", asyncHandler(restoreExpenseController));
 
-router.patch(
-  "/api/expenses/clear-all",
-  asyncHandler(clearAllExpensesController),
-);
+router.patch("/clear-all", asyncHandler(clearAllExpensesController));
 
 module.exports = router;

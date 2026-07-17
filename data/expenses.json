@@ -2,6 +2,16 @@
   {
     "id": "3595bf82-d378-417a-8f19-5f8312ecda78",
     "title": "rty",
+    "amount": 4540,
+    "category": "bills",
+    "date": "2026-07-16",
+    "recurring": "none",
+    "lastGeneratedDate": "",
+    "deleted": true
+  },
+  {
+    "id": "700ee54d-1b36-4e8c-b258-e1783da830c5",
+    "title": "rty",
     "amount": 454,
     "category": "bills",
     "date": "2026-07-16",
