@@ -10,6 +10,7 @@ function normalizeExpenseData(data, existingId = null) {
     date: isValidDate ? data.date : new Date().toISOString().split("T")[0],
     recurring: data.recurring ?? "none",
     lastGeneratedDate: data.lastGeneratedDate ?? "",
+    recurringId: data.recurringId ?? null,
     deleted: false,
   };
 }

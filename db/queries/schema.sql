@@ -6,5 +6,6 @@ CREATE TABLE expenses (
   date DATE NOT NULL,
   recurring TEXT DEFAULT 'none',
   last_generated_date TEXT DEFAULT '',
-  deleted BOOLEAN DEFAULT false
+  recurring_id UUID,
+ deleted BOOLEAN DEFAULT false
 );

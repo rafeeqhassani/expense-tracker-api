@@ -20,9 +20,10 @@ async function createExpenseQuery(expense) {
       date,
       recurring,
       last_generated_date,
-      deleted
+      deleted,
+      recurring_id
     )
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
     RETURNING *
     `,
     [
@@ -34,6 +35,7 @@ async function createExpenseQuery(expense) {
       expense.recurring,
       expense.lastGeneratedDate,
       expense.deleted,
+      expense.recurringId || null,
     ],
   );
 
@@ -63,6 +65,20 @@ async function updateExpenseQuery(id, expense) {
       expense.lastGeneratedDate,
       id,
     ],
+  );
+
+  return mapExpenseFromDatabase(result.rows[0]);
+}
+
+async function updateLastGeneratedDateQuery(id, lastGeneratedDate) {
+  const result = await pool.query(
+    `
+    UPDATE expenses
+    SET last_generated_date = $1
+    WHERE id = $2
+    RETURNING *
+    `,
+    [lastGeneratedDate, id],
   );
 
   return mapExpenseFromDatabase(result.rows[0]);
@@ -112,6 +128,7 @@ module.exports = {
   getAllExpenses,
   createExpenseQuery,
   updateExpenseQuery,
+  updateLastGeneratedDateQuery,
   deleteExpenseQuery,
   restoreExpenseQuery,
   clearAllExpensesQuery,

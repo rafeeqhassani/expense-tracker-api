@@ -7,11 +7,18 @@ const {
   clearAllExpensesQuery,
 } = require("../db/queries/expenseQueries");
 
+const { processRecurringExpenses } = require("../services/recurringService");
+
 const normalizeExpenseData = require("../utils/normalizeExpenseData");
 const apiResponse = require("../utils/apiResponse");
 
 async function getExpensesController(request, response) {
-  const expenses = await getAllExpenses();
+  let expenses = await getAllExpenses();
+
+  await processRecurringExpenses(expenses);
+
+  expenses = await getAllExpenses();
+
   apiResponse(response, 200, expenses, "Expenses fetched successfully");
 }
 
