@@ -5,6 +5,7 @@ const {
   deleteExpenseQuery,
   restoreExpenseQuery,
   clearAllExpensesQuery,
+  getExpensesCountQuery,
 } = require("../db/queries/expenseQueries");
 
 const { processRecurringExpenses } = require("../services/recurringService");
@@ -16,13 +17,28 @@ async function getExpensesController(request, response) {
   const page = Number(request.query.page) || 1;
   const limit = Number(request.query.limit) || 20;
 
-  const expenses = await getAllExpenses(page, limit);
-
   await processRecurringExpenses();
 
-  const updatedExpenses = await getAllExpenses(page, limit);
+  const expenses = await getAllExpenses(page, limit);
 
-  apiResponse(response, 200, updatedExpenses, "Expenses fetched successfully");
+  const totalExpenses = await getExpensesCountQuery();
+
+  const totalPages = Math.ceil(totalExpenses / limit);
+
+  apiResponse(
+    response,
+    200,
+    {
+      expenses,
+      pagination: {
+        page,
+        limit,
+        totalExpenses,
+        totalPages,
+      },
+    },
+    "Expenses fetched successfully",
+  );
 }
 
 async function createExpenseController(request, response) {

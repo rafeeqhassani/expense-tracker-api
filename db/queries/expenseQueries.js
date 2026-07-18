@@ -1,9 +1,14 @@
 const pool = require("../../db");
 const mapExpenseFromDatabase = require("../../utils/mapExpenseFromDatabase");
 
-async function getAllExpenses() {
+async function getAllExpenses(page, limit) {
+  const offset = (page - 1) * limit;
+
   const result = await pool.query(
-    "SELECT * FROM expenses WHERE deleted = false",
+    `SELECT * FROM expenses WHERE deleted = false
+     ORDER BY date DESC
+    LIMIT $1 OFFSET $2;`,
+    [limit, offset],
   );
 
   return result.rows.map(mapExpenseFromDatabase);
@@ -135,6 +140,15 @@ AND deleted = false;
   return result.rows.map(mapExpenseFromDatabase);
 }
 
+async function getExpensesCountQuery() {
+  const result = await pool.query(`
+    SELECT COUNT(*)
+FROM expenses
+WHERE deleted = false;`);
+
+  return Number(result.rows[0].count);
+}
+
 module.exports = {
   getAllExpenses,
   createExpenseQuery,
@@ -144,4 +158,5 @@ module.exports = {
   restoreExpenseQuery,
   clearAllExpensesQuery,
   getRecurringExpensesQuery,
+  getExpensesCountQuery,
 };
