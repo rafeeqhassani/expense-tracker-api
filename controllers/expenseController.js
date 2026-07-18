@@ -13,13 +13,16 @@ const normalizeExpenseData = require("../utils/normalizeExpenseData");
 const apiResponse = require("../utils/apiResponse");
 
 async function getExpensesController(request, response) {
-  let expenses = await getAllExpenses();
+  const page = Number(request.query.page) || 1;
+  const limit = Number(request.query.limit) || 20;
 
-  await processRecurringExpenses(expenses);
+  const expenses = await getAllExpenses(page, limit);
 
-  expenses = await getAllExpenses();
+  await processRecurringExpenses();
 
-  apiResponse(response, 200, expenses, "Expenses fetched successfully");
+  const updatedExpenses = await getAllExpenses(page, limit);
+
+  apiResponse(response, 200, updatedExpenses, "Expenses fetched successfully");
 }
 
 async function createExpenseController(request, response) {

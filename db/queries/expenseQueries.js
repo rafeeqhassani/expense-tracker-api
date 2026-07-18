@@ -124,6 +124,17 @@ async function clearAllExpensesQuery() {
   return result.rows.map(mapExpenseFromDatabase);
 }
 
+async function getRecurringExpensesQuery() {
+  const result = await pool.query(`
+    SELECT *
+FROM expenses
+WHERE recurring != 'none'
+AND deleted = false;
+    `);
+
+  return result.rows.map(mapExpenseFromDatabase);
+}
+
 module.exports = {
   getAllExpenses,
   createExpenseQuery,
@@ -132,4 +143,5 @@ module.exports = {
   deleteExpenseQuery,
   restoreExpenseQuery,
   clearAllExpensesQuery,
+  getRecurringExpensesQuery,
 };

@@ -1,6 +1,7 @@
 const {
   createExpenseQuery,
   updateLastGeneratedDateQuery,
+  getRecurringExpensesQuery,
 } = require("../db/queries/expenseQueries");
 
 const STEP_ADDERS = {
@@ -76,15 +77,10 @@ function createGeneratedExpense(expense, date) {
   };
 }
 
-async function processRecurringExpenses(expenses) {
+async function processRecurringExpenses() {
   const today = new Date();
 
-  const recurringExpenses = expenses.filter(
-    (expense) =>
-      expense.recurring &&
-      expense.recurring !== "none" &&
-      expense.lastGeneratedDate,
-  );
+  const recurringExpenses = await getRecurringExpensesQuery();
 
   let generatedCount = 0;
 
@@ -113,8 +109,6 @@ async function processRecurringExpenses(expenses) {
 
     await updateLastGeneratedDateQuery(expense.id, lastGeneratedDate);
   }
-
-  console.log("Generated expenses saved:", generatedCount);
 
   return generatedCount;
 }
