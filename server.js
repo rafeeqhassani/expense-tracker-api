@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 
 const expenseRoutes = require("./routes/expenses");
+const budgetRoutes = require("./routes/budget");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -9,6 +10,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use("/api/expenses", expenseRoutes);
+app.use("/api/budget", budgetRoutes);
+
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
