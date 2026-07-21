@@ -1,15 +1,82 @@
-const pool = require("../../db");
+const pool = require("../db");
 const mapExpenseFromDatabase = require("../../utils/mapExpenseFromDatabase");
 
-async function getAllExpenses(page, limit) {
+async function getAllExpenses(filters) {
+  const { page, limit, search, month, startDate, endDate, sortBy, sortOrder } =
+    filters;
+
   const offset = (page - 1) * limit;
 
-  const result = await pool.query(
-    `SELECT * FROM expenses WHERE deleted = false
-     ORDER BY date DESC
-    LIMIT $1 OFFSET $2;`,
-    [limit, offset],
-  );
+  let query = `
+SELECT *
+FROM expenses
+WHERE deleted = false
+`;
+
+  const values = [];
+  let index = 1;
+
+  if (search) {
+    query += `
+  AND (
+    title ILIKE $${index}
+    OR category ILIKE $${index}
+    OR CAST(amount AS TEXT) ILIKE $${index}
+  )
+  `;
+
+    values.push(`%${search}%`);
+    index++;
+  }
+
+  if (month) {
+    query += `
+    AND EXTRACT(MONTH FROM date) = $${index}
+  `;
+
+    values.push(Number(month));
+    index++;
+  }
+
+  if (startDate) {
+    query += `
+    AND date >= $${index}
+  `;
+
+    values.push(startDate);
+    index++;
+  }
+
+  if (endDate) {
+    query += `
+    AND date <= $${index}
+  `;
+
+    values.push(endDate);
+    index++;
+  }
+
+  const allowedSortFields = {
+    date: "date",
+    amount: "amount",
+    title: "title",
+    category: "category",
+  };
+
+  const sortColumn = allowedSortFields[sortBy] || "date";
+
+  const order = sortOrder === "asc" ? "ASC" : "DESC";
+
+  query += `
+ORDER BY ${sortColumn} ${order}, created_at DESC
+LIMIT $${index}
+OFFSET $${index + 1}
+`;
+
+  values.push(limit);
+  values.push(offset);
+
+  const result = await pool.query(query, values);
 
   return result.rows.map(mapExpenseFromDatabase);
 }
@@ -140,11 +207,59 @@ AND deleted = false;
   return result.rows.map(mapExpenseFromDatabase);
 }
 
-async function getExpensesCountQuery() {
-  const result = await pool.query(`
+async function getExpensesCountQuery(filters) {
+  const { search, month, startDate, endDate } = filters;
+
+  let query = `
     SELECT COUNT(*)
-FROM expenses
-WHERE deleted = false;`);
+    FROM expenses
+    WHERE deleted = false
+  `;
+
+  const values = [];
+  let index = 1;
+
+  if (search) {
+    query += `
+      AND (
+        title ILIKE $${index}
+        OR category ILIKE $${index}
+        OR CAST(amount AS TEXT) ILIKE $${index}
+      )
+    `;
+
+    values.push(`%${search}%`);
+    index++;
+  }
+
+  if (month) {
+    query += `
+    AND EXTRACT(MONTH FROM date) = $${index}
+  `;
+
+    values.push(Number(month));
+    index++;
+  }
+
+  if (startDate) {
+    query += `
+    AND date >= $${index}
+  `;
+
+    values.push(startDate);
+    index++;
+  }
+
+  if (endDate) {
+    query += `
+    AND date <= $${index}
+  `;
+
+    values.push(endDate);
+    index++;
+  }
+
+  const result = await pool.query(query, values);
 
   return Number(result.rows[0].count);
 }

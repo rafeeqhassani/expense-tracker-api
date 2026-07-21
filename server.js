@@ -3,6 +3,8 @@ const cors = require("cors");
 
 const expenseRoutes = require("./routes/expenses");
 const budgetRoutes = require("./routes/budget");
+const analyticsRoutes = require("./routes/analytics");
+
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -11,6 +13,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/budget", budgetRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 app.use(errorHandler);
 

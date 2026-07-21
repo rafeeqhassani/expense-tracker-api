@@ -17,11 +17,22 @@ async function getExpensesController(request, response) {
   const page = Number(request.query.page) || 1;
   const limit = Number(request.query.limit) || 20;
 
+  const filters = {
+    page,
+    limit,
+    search: request.query.search || "",
+    month: request.query.month || "",
+    startDate: request.query.startDate || "",
+    endDate: request.query.endDate || "",
+    sortBy: request.query.sortBy || "date",
+    sortOrder: request.query.sortOrder || "desc",
+  };
+
   await processRecurringExpenses();
 
-  const expenses = await getAllExpenses(page, limit);
+  const expenses = await getAllExpenses(filters);
 
-  const totalExpenses = await getExpensesCountQuery();
+  const totalExpenses = await getExpensesCountQuery(filters);
 
   const totalPages = Math.ceil(totalExpenses / limit);
 

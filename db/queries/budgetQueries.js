@@ -1,4 +1,4 @@
-const pool = require("../../db");
+const pool = require("../db");
 const mapBudgetFromDatabase = require("../../utils/mapBudgetFromDatabase");
 
 async function getBudgetByUserId(userId) {
