@@ -1,9 +1,15 @@
+const crypto = require("crypto");
+
 const {
   createExpenseQuery,
   updateLastGeneratedDateQuery,
   getRecurringExpensesQuery,
 } = require("../db/queries/expenseQueries");
 
+/**
+ * Maps a recurring type to a function that advances a given date
+ * by one occurrence of that type.
+ */
 const STEP_ADDERS = {
   daily: (date) => {
     const nextDate = new Date(date);
@@ -30,6 +36,12 @@ const STEP_ADDERS = {
   },
 };
 
+/**
+ * Advances `date` by one occurrence of `recurringType`
+ * (e.g. one day, one week, one month, one year).
+ *
+ * @throws {Error} If `recurringType` is not a recognized recurring type.
+ */
 function addStep(date, recurringType) {
   const stepAdder = STEP_ADDERS[recurringType];
 
@@ -40,16 +52,32 @@ function addStep(date, recurringType) {
   return stepAdder(date);
 }
 
-function generateMissingDates(currentDate, lastRunDate, recurringType) {
-  const current = new Date(currentDate.toISOString().split("T")[0]);
+/**
+ * Strips the time component from a date, returning midnight UTC
+ * for that calendar day.
+ */
+function toDateOnly(date) {
+  return new Date(date.toISOString().split("T")[0]);
+}
 
-  let lastRun = new Date(lastRunDate.toISOString().split("T")[0]);
+/**
+ * Computes every occurrence date that should have been generated
+ * between `lastRunDate` (exclusive) and `currentDate` (exclusive),
+ * stepping forward according to `recurringType`.
+ *
+ * @returns {Date[]} Dates in chronological order; empty if none are due.
+ */
+function generateMissingDates(currentDate, lastRunDate, recurringType) {
+  const current = toDateOnly(currentDate);
+  let lastRun = toDateOnly(lastRunDate);
 
   const missingDates = [];
 
   while (lastRun < current) {
     const nextDate = addStep(lastRun, recurringType);
 
+    // Safety net: if a step ever fails to advance the date,
+    // stop instead of looping forever.
     if (nextDate.getTime() === lastRun.getTime()) {
       break;
     }
@@ -61,53 +89,73 @@ function generateMissingDates(currentDate, lastRunDate, recurringType) {
   return missingDates;
 }
 
-const crypto = require("crypto");
-
-function createGeneratedExpense(expense, date) {
+/**
+ * Builds a new one-off expense record generated from a recurring
+ * expense template, dated `occurrenceDate`.
+ */
+function createGeneratedExpense(recurringExpense, occurrenceDate) {
   return {
     id: crypto.randomUUID(),
-    title: expense.title,
-    amount: expense.amount,
-    category: expense.category,
-    date: date.toISOString().split("T")[0],
+    title: recurringExpense.title,
+    amount: recurringExpense.amount,
+    category: recurringExpense.category,
+    date: occurrenceDate.toISOString().split("T")[0],
     recurring: "none",
     lastGeneratedDate: "",
-    recurringId: expense.id,
+    recurringId: recurringExpense.id,
     deleted: false,
   };
 }
 
+/**
+ * Generates and persists any expense occurrences that are due for a
+ * single recurring expense, then advances its `lastGeneratedDate`.
+ *
+ * @returns {Promise<number>} The number of expenses generated.
+ */
+async function processRecurringExpense(recurringExpense, today) {
+  const missingDates = generateMissingDates(
+    today,
+    new Date(recurringExpense.lastGeneratedDate),
+    recurringExpense.recurring,
+  );
+
+  if (missingDates.length === 0) {
+    return 0;
+  }
+
+  for (const occurrenceDate of missingDates) {
+    const generatedExpense = createGeneratedExpense(
+      recurringExpense,
+      occurrenceDate,
+    );
+    await createExpenseQuery(generatedExpense);
+  }
+
+  const latestGeneratedDate = missingDates[missingDates.length - 1]
+    .toISOString()
+    .split("T")[0];
+
+  await updateLastGeneratedDateQuery(recurringExpense.id, latestGeneratedDate);
+
+  return missingDates.length;
+}
+
+/**
+ * Finds all recurring expenses and generates any missing occurrences
+ * up to today, persisting them and updating each expense's
+ * last-generated date.
+ *
+ * @returns {Promise<number>} Total number of expenses generated.
+ */
 async function processRecurringExpenses() {
   const today = new Date();
-
   const recurringExpenses = await getRecurringExpensesQuery();
 
   let generatedCount = 0;
 
-  for (const expense of recurringExpenses) {
-    const missingDates = generateMissingDates(
-      today,
-      new Date(expense.lastGeneratedDate),
-      expense.recurring,
-    );
-
-    if (missingDates.length === 0) {
-      continue;
-    }
-
-    for (const missingDate of missingDates) {
-      const generatedExpense = createGeneratedExpense(expense, missingDate);
-
-      await createExpenseQuery(generatedExpense);
-
-      generatedCount++;
-    }
-
-    const lastGeneratedDate = missingDates[missingDates.length - 1]
-      .toISOString()
-      .split("T")[0];
-
-    await updateLastGeneratedDateQuery(expense.id, lastGeneratedDate);
+  for (const recurringExpense of recurringExpenses) {
+    generatedCount += await processRecurringExpense(recurringExpense, today);
   }
 
   return generatedCount;

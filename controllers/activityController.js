@@ -6,24 +6,24 @@ const {
 
 const apiResponse = require("../utils/apiResponse");
 
-async function getActivitiesController(req, res, next) {
+async function getActivitiesController(request, response) {
   const activities = await getAllActivities();
 
-  apiResponse(res, 200, activities);
+  apiResponse(response, 200, activities);
 }
 
-async function createActivityController(req, res, next) {
-  const { type, message } = req.body;
+async function createActivityController(request, response) {
+  const { type, message } = request.body;
 
   const activity = await createActivity(type, message);
 
-  apiResponse(res, 201, activity);
+  apiResponse(response, 201, activity);
 }
 
-async function clearActivitiesController(req, res, next) {
+async function clearActivitiesController(request, response) {
   await clearActivities();
 
-  apiResponse(res, 200, null, "Activities cleared successfully");
+  apiResponse(response, 200, null, "Activities cleared successfully");
 }
 
 module.exports = {

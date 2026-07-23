@@ -1,10 +1,10 @@
 const { getAllCategories } = require("../db/queries/categoryQueries");
 const apiResponse = require("../utils/apiResponse");
 
-async function getCategoriesController(req, res) {
+async function getCategoriesController(request, response) {
   const categories = await getAllCategories();
 
-  apiResponse(res, 200, categories);
+  apiResponse(response, 200, categories);
 }
 
 module.exports = {

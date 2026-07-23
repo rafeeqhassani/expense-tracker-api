@@ -1,33 +1,38 @@
 const pool = require("../db");
 
+const mapActivityFromDatabase = require("../../utils/mapActivityFromDatabase");
+
 async function getAllActivities() {
-  const result = await pool.query(`
+  const query = `
     SELECT *
     FROM activities
     ORDER BY created_at DESC
     LIMIT 10
-  `);
+  `;
 
-  return result.rows;
+  const result = await pool.query(query);
+
+  return result.rows.map(mapActivityFromDatabase);
 }
 
 async function createActivity(type, message) {
-  const result = await pool.query(
-    `
+  const query = `
     INSERT INTO activities (type, message)
     VALUES ($1, $2)
     RETURNING *
-    `,
-    [type, message],
-  );
+  `;
 
-  return result.rows[0];
+  const result = await pool.query(query, [type, message]);
+
+  return mapActivityFromDatabase(result.rows[0]);
 }
 
 async function clearActivities() {
-  await pool.query(`
+  const query = `
     DELETE FROM activities
-  `);
+  `;
+
+  await pool.query(query);
 }
 
 module.exports = {

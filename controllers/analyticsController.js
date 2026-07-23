@@ -6,22 +6,22 @@ const {
 
 const apiResponse = require("../utils/apiResponse");
 
-async function getSummaryController(req, res) {
+async function getSummaryController(request, response) {
   const summary = await getAnalyticsSummary();
 
-  apiResponse(res, 200, summary);
+  apiResponse(response, 200, summary);
 }
 
-async function getDashboardController(req, res) {
+async function getDashboardController(request, response) {
   const dashboard = await getDashboardStats();
 
-  apiResponse(res, 200, dashboard);
+  apiResponse(response, 200, dashboard);
 }
 
-async function getChartsController(req, res) {
+async function getChartsController(request, response) {
   const charts = await getChartData();
 
-  apiResponse(res, 200, charts);
+  apiResponse(response, 200, charts);
 }
 
 module.exports = {

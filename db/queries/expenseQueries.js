@@ -1,89 +1,104 @@
 const pool = require("../db");
 const mapExpenseFromDatabase = require("../../utils/mapExpenseFromDatabase");
 
-async function getAllExpenses(filters) {
-  const { page, limit, search, month, startDate, endDate, sortBy, sortOrder } =
-    filters;
+const ALLOWED_SORT_FIELDS = {
+  date: "date",
+  amount: "amount",
+  title: "title",
+  category: "category",
+};
 
-  const offset = (page - 1) * limit;
+/**
+ * Builds the shared WHERE clause + parameter values used by both
+ * getAllExpenses and getExpensesCountQuery, so filtering logic
+ * only ever lives in one place.
+ */
+function buildExpenseFilterClause(filters) {
+  const { search, month, startDate, endDate } = filters;
 
-  let query = `
-SELECT *
-FROM expenses
-WHERE deleted = false
-`;
-
+  const conditions = ["deleted = false"];
   const values = [];
-  let index = 1;
+  let paramIndex = 1;
 
   if (search) {
-    query += `
-  AND (
-    title ILIKE $${index}
-    OR category ILIKE $${index}
-    OR CAST(amount AS TEXT) ILIKE $${index}
-  )
-  `;
-
+    conditions.push(`
+      (
+        title ILIKE $${paramIndex}
+        OR category ILIKE $${paramIndex}
+        OR CAST(amount AS TEXT) ILIKE $${paramIndex}
+      )
+    `);
     values.push(`%${search}%`);
-    index++;
+    paramIndex++;
   }
 
   if (month) {
-    query += `
-    AND EXTRACT(MONTH FROM date) = $${index}
-  `;
-
+    conditions.push(`EXTRACT(MONTH FROM date) = $${paramIndex}`);
     values.push(Number(month));
-    index++;
+    paramIndex++;
   }
 
   if (startDate) {
-    query += `
-    AND date >= $${index}
-  `;
-
+    conditions.push(`date >= $${paramIndex}`);
     values.push(startDate);
-    index++;
+    paramIndex++;
   }
 
   if (endDate) {
-    query += `
-    AND date <= $${index}
-  `;
-
+    conditions.push(`date <= $${paramIndex}`);
     values.push(endDate);
-    index++;
+    paramIndex++;
   }
 
-  const allowedSortFields = {
-    date: "date",
-    amount: "amount",
-    title: "title",
-    category: "category",
+  return {
+    whereClause: `WHERE ${conditions.join(" AND ")}`,
+    values,
+    nextParamIndex: paramIndex,
   };
+}
 
-  const sortColumn = allowedSortFields[sortBy] || "date";
+async function getAllExpenses(filters) {
+  const { page, limit, sortBy, sortOrder } = filters;
+  const offset = (page - 1) * limit;
 
-  const order = sortOrder === "asc" ? "ASC" : "DESC";
+  const { whereClause, values, nextParamIndex } =
+    buildExpenseFilterClause(filters);
 
-  query += `
-ORDER BY ${sortColumn} ${order}, created_at DESC
-LIMIT $${index}
-OFFSET $${index + 1}
-`;
+  const sortColumn = ALLOWED_SORT_FIELDS[sortBy] || "date";
+  const sortDirection = sortOrder === "asc" ? "ASC" : "DESC";
 
-  values.push(limit);
-  values.push(offset);
+  const query = `
+    SELECT *
+    FROM expenses
+    ${whereClause}
+    ORDER BY ${sortColumn} ${sortDirection}, created_at DESC
+    LIMIT $${nextParamIndex}
+    OFFSET $${nextParamIndex + 1}
+  `;
 
-  const result = await pool.query(query, values);
+  const queryValues = [...values, limit, offset];
+
+  const result = await pool.query(query, queryValues);
 
   return result.rows.map(mapExpenseFromDatabase);
 }
 
+async function getExpensesCountQuery(filters) {
+  const { whereClause, values } = buildExpenseFilterClause(filters);
+
+  const query = `
+    SELECT COUNT(*)
+    FROM expenses
+    ${whereClause}
+  `;
+
+  const result = await pool.query(query, values);
+
+  return Number(result.rows[0].count);
+}
+
 async function createExpenseQuery(expense) {
-  const result = await pool.query(
-    `
+  const query = `
     INSERT INTO expenses (
       id,
       title,
@@ -95,28 +110,29 @@ async function createExpenseQuery(expense) {
       deleted,
       recurring_id
     )
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING *
-    `,
-    [
-      expense.id,
-      expense.title,
-      expense.amount,
-      expense.category,
-      expense.date,
-      expense.recurring,
-      expense.lastGeneratedDate,
-      expense.deleted,
-      expense.recurringId || null,
-    ],
-  );
+  `;
+
+  const values = [
+    expense.id,
+    expense.title,
+    expense.amount,
+    expense.category,
+    expense.date,
+    expense.recurring,
+    expense.lastGeneratedDate,
+    expense.deleted,
+    expense.recurringId || null,
+  ];
+
+  const result = await pool.query(query, values);
 
   return mapExpenseFromDatabase(result.rows[0]);
 }
 
 async function updateExpenseQuery(id, expense) {
-  const result = await pool.query(
-    `
+  const query = `
     UPDATE expenses
     SET
       title = $1,
@@ -127,141 +143,106 @@ async function updateExpenseQuery(id, expense) {
       last_generated_date = $6
     WHERE id = $7
     RETURNING *
-    `,
-    [
-      expense.title,
-      expense.amount,
-      expense.category,
-      expense.date,
-      expense.recurring,
-      expense.lastGeneratedDate,
-      id,
-    ],
-  );
+  `;
+
+  const values = [
+    expense.title,
+    expense.amount,
+    expense.category,
+    expense.date,
+    expense.recurring,
+    expense.lastGeneratedDate,
+    id,
+  ];
+
+  const result = await pool.query(query, values);
+
+  if (!result.rows[0]) return null;
 
   return mapExpenseFromDatabase(result.rows[0]);
 }
 
 async function updateLastGeneratedDateQuery(id, lastGeneratedDate) {
-  const result = await pool.query(
-    `
+  const query = `
     UPDATE expenses
     SET last_generated_date = $1
     WHERE id = $2
     RETURNING *
-    `,
-    [lastGeneratedDate, id],
-  );
+  `;
+
+  const result = await pool.query(query, [lastGeneratedDate, id]);
+
+  if (!result.rows[0]) return null;
 
   return mapExpenseFromDatabase(result.rows[0]);
 }
 
 async function deleteExpenseQuery(id) {
-  const result = await pool.query(
-    `
+  const query = `
     UPDATE expenses
     SET deleted = true
     WHERE id = $1
     RETURNING *
-    `,
-    [id],
-  );
+  `;
+
+  const result = await pool.query(query, [id]);
+
+  if (!result.rows[0]) return null;
 
   return mapExpenseFromDatabase(result.rows[0]);
 }
 
 async function restoreExpenseQuery(id) {
-  const result = await pool.query(
-    `
+  const query = `
     UPDATE expenses
     SET deleted = false
     WHERE id = $1
     RETURNING *
-    `,
-    [id],
-  );
+  `;
+
+  const result = await pool.query(query, [id]);
+
+  if (!result.rows[0]) return null;
 
   return mapExpenseFromDatabase(result.rows[0]);
 }
 
 async function clearAllExpensesQuery() {
-  const result = await pool.query(
-    `
+  const query = `
     UPDATE expenses
     SET deleted = true
     RETURNING *
-    `,
-  );
+  `;
+
+  const result = await pool.query(query);
 
   return result.rows.map(mapExpenseFromDatabase);
 }
 
 async function getRecurringExpensesQuery() {
-  const result = await pool.query(`
+  const query = `
     SELECT *
-FROM expenses
-WHERE recurring != 'none'
-AND deleted = false;
-    `);
+    FROM expenses
+    WHERE recurring != 'none'
+      AND deleted = false
+  `;
+
+  const result = await pool.query(query);
 
   return result.rows.map(mapExpenseFromDatabase);
 }
 
-async function getExpensesCountQuery(filters) {
-  const { search, month, startDate, endDate } = filters;
-
-  let query = `
-    SELECT COUNT(*)
-    FROM expenses
-    WHERE deleted = false
+async function deleteSelectedExpenses(ids) {
+  const query = `
+    UPDATE expenses
+    SET deleted = true
+    WHERE id = ANY($1)
+    RETURNING *
   `;
 
-  const values = [];
-  let index = 1;
+  const result = await pool.query(query, [ids]);
 
-  if (search) {
-    query += `
-      AND (
-        title ILIKE $${index}
-        OR category ILIKE $${index}
-        OR CAST(amount AS TEXT) ILIKE $${index}
-      )
-    `;
-
-    values.push(`%${search}%`);
-    index++;
-  }
-
-  if (month) {
-    query += `
-    AND EXTRACT(MONTH FROM date) = $${index}
-  `;
-
-    values.push(Number(month));
-    index++;
-  }
-
-  if (startDate) {
-    query += `
-    AND date >= $${index}
-  `;
-
-    values.push(startDate);
-    index++;
-  }
-
-  if (endDate) {
-    query += `
-    AND date <= $${index}
-  `;
-
-    values.push(endDate);
-    index++;
-  }
-
-  const result = await pool.query(query, values);
-
-  return Number(result.rows[0].count);
+  return result.rows.map(mapExpenseFromDatabase);
 }
 
 module.exports = {
@@ -274,4 +255,5 @@ module.exports = {
   clearAllExpensesQuery,
   getRecurringExpensesQuery,
   getExpensesCountQuery,
+  deleteSelectedExpenses,
 };

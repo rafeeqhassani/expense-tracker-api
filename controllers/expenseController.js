@@ -6,12 +6,19 @@ const {
   restoreExpenseQuery,
   clearAllExpensesQuery,
   getExpensesCountQuery,
+  deleteSelectedExpenses,
 } = require("../db/queries/expenseQueries");
 
 const { processRecurringExpenses } = require("../services/recurringService");
 
 const normalizeExpenseData = require("../utils/normalizeExpenseData");
 const apiResponse = require("../utils/apiResponse");
+
+function notFoundError(message) {
+  const error = new Error(message);
+  error.statusCode = 404;
+  return error;
+}
 
 async function getExpensesController(request, response) {
   const page = Number(request.query.page) || 1;
@@ -31,9 +38,7 @@ async function getExpensesController(request, response) {
   await processRecurringExpenses();
 
   const expenses = await getAllExpenses(filters);
-
   const totalExpenses = await getExpensesCountQuery(filters);
-
   const totalPages = Math.ceil(totalExpenses / limit);
 
   apiResponse(
@@ -68,9 +73,7 @@ async function updateExpenseController(request, response) {
   const expense = await updateExpenseQuery(id, updatedExpense);
 
   if (!expense) {
-    const error = new Error("Expense not found");
-    error.statusCode = 404;
-    throw error;
+    throw notFoundError("Expense not found");
   }
 
   apiResponse(response, 200, expense, "Expense updated successfully");
@@ -82,9 +85,7 @@ async function deleteExpenseController(request, response) {
   const expense = await deleteExpenseQuery(id);
 
   if (!expense) {
-    const error = new Error("Expense not found");
-    error.statusCode = 404;
-    throw error;
+    throw notFoundError("Expense not found");
   }
 
   apiResponse(response, 200, expense, "Expense deleted successfully");
@@ -96,9 +97,7 @@ async function restoreExpenseController(request, response) {
   const expense = await restoreExpenseQuery(id);
 
   if (!expense) {
-    const error = new Error("Expense not found");
-    error.statusCode = 404;
-    throw error;
+    throw notFoundError("Expense not found");
   }
 
   apiResponse(response, 200, expense, "Expense restored successfully");
@@ -110,6 +109,14 @@ async function clearAllExpensesController(request, response) {
   apiResponse(response, 200, expenses, "All expenses cleared successfully");
 }
 
+async function deleteSelectedExpensesController(request, response) {
+  const { ids } = request.body;
+
+  const deletedExpenses = await deleteSelectedExpenses(ids);
+
+  apiResponse(response, 200, deletedExpenses);
+}
+
 module.exports = {
   getExpensesController,
   createExpenseController,
@@ -117,4 +124,5 @@ module.exports = {
   deleteExpenseController,
   restoreExpenseController,
   clearAllExpensesController,
+  deleteSelectedExpensesController,
 };

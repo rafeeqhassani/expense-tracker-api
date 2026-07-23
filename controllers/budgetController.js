@@ -3,29 +3,26 @@ const {
   saveBudgetQuery,
 } = require("../db/queries/budgetQueries");
 
-const normalizeExpenseData = require("../utils/normalizeExpenseData");
-
 const apiResponse = require("../utils/apiResponse");
-
 const { TEMP_USER_ID } = require("../constants/appConstants");
 
-async function getBudgetController(req, res) {
+async function getBudgetController(request, response) {
   // Temporary user ID until authentication is added
   const userId = TEMP_USER_ID;
 
   const budget = await getBudgetByUserId(userId);
 
-  apiResponse(res, 200, budget, "Budget fetched successfully");
+  apiResponse(response, 200, budget, "Budget fetched successfully");
 }
 
-async function saveBudgetController(req, res) {
+async function saveBudgetController(request, response) {
   const userId = TEMP_USER_ID;
 
-  const budget = req.body;
+  const budget = request.body;
 
   const savedBudget = await saveBudgetQuery(userId, budget);
 
-  apiResponse(res, 200, savedBudget, "Budget saved successfully");
+  apiResponse(response, 200, savedBudget, "Budget saved successfully");
 }
 
 module.exports = {
