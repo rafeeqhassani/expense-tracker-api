@@ -4,7 +4,7 @@ const mapDashboardFromDatabase = require("../../utils/mapDashboardFromDatabase")
 const mapChartsFromDatabase = require("../../utils/mapChartsFromDatabase");
 const mapMonthlyChartFromDatabase = require("../../utils/mapMonthlyChartFromDatabase");
 
-async function getAnalyticsSummary() {
+async function getAnalyticsSummary(userId) {
   const query = `
     SELECT
       -- Overall
@@ -50,15 +50,16 @@ async function getAnalyticsSummary() {
       ) AS month_average_daily_spending
 
     FROM expenses
-    WHERE deleted = false
+    WHERE user_id = $1
+    AND deleted = false
   `;
 
-  const result = await pool.query(query);
+  const result = await pool.query(query, [userId]);
 
   return mapAnalyticsFromDatabase(result.rows[0]);
 }
 
-async function getDashboardStats() {
+async function getDashboardStats(userId) {
   const query = `
     SELECT
       COALESCE(
@@ -84,23 +85,25 @@ async function getDashboardStats() {
       COUNT(DISTINCT category) AS total_categories
 
     FROM expenses
-    WHERE deleted = false
+    WHERE user_id = $1
+    AND deleted = false
   `;
 
-  const result = await pool.query(query);
+  const result = await pool.query(query, [userId]);
 
   return mapDashboardFromDatabase(result.rows[0]);
 }
 
-async function getCategoryChartData() {
+async function getCategoryChartData(userId) {
   const query = `
     WITH category_totals AS (
       SELECT
         category,
         SUM(amount) AS total
       FROM expenses
-      WHERE deleted = false
-        AND date <= CURRENT_DATE
+      WHERE user_id = $1
+      AND deleted = false
+      AND date <= CURRENT_DATE
       GROUP BY category
       ORDER BY total DESC
     ),
@@ -130,12 +133,12 @@ async function getCategoryChartData() {
     WHERE total IS NOT NULL
   `;
 
-  const result = await pool.query(query);
+  const result = await pool.query(query, [userId]);
 
   return result.rows.map(mapChartsFromDatabase);
 }
 
-async function getMonthlyChartData() {
+async function getMonthlyChartData(userId) {
   const query = `
     SELECT
       TO_CHAR(months.month, 'Mon YYYY') AS month,
@@ -147,21 +150,22 @@ async function getMonthlyChartData() {
     ) AS months(month)
     LEFT JOIN expenses
       ON date_trunc('month', expenses.date) = months.month
+      WHERE expenses.user_id = $1
       AND expenses.deleted = false
       AND expenses.date <= CURRENT_DATE
     GROUP BY months.month
     ORDER BY months.month
   `;
 
-  const result = await pool.query(query);
+  const result = await pool.query(query, [userId]);
 
   return result.rows.map(mapMonthlyChartFromDatabase);
 }
 
-async function getChartData() {
+async function getChartData(userId) {
   const [category, monthly] = await Promise.all([
-    getCategoryChartData(),
-    getMonthlyChartData(),
+    getCategoryChartData(userId),
+    getMonthlyChartData(userId),
   ]);
 
   return { category, monthly };

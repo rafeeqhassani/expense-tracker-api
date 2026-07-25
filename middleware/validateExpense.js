@@ -1,3 +1,5 @@
+const AppError = require("../utils/AppError");
+
 const NUMERIC_PATTERN_MESSAGE = "cannot be a number";
 
 /**
@@ -75,22 +77,22 @@ function validateExpense(req, res, next) {
 
   const titleError = validateTextField(title, "Title");
   if (titleError) {
-    return res.status(400).json({ message: titleError });
+    return next(new AppError(titleError, 400));
   }
 
   const amountError = validateAmount(amount);
   if (amountError) {
-    return res.status(400).json({ message: amountError });
+    return next(new AppError(titleError, 400));
   }
 
   const categoryError = validateTextField(category, "Category");
   if (categoryError) {
-    return res.status(400).json({ message: categoryError });
+    return next(new AppError(titleError, 400));
   }
 
   const dateError = validateDate(date);
   if (dateError) {
-    return res.status(400).json({ message: dateError });
+    return next(new AppError(titleError, 400));
   }
 
   next();

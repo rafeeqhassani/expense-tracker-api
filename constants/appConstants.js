@@ -1,5 +1,0 @@
-const TEMP_USER_ID = "11111111-1111-1111-1111-111111111111";
-
-module.exports = {
-  TEMP_USER_ID,
-};

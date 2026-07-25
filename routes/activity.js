@@ -5,14 +5,15 @@ const {
   createActivityController,
   clearActivitiesController,
 } = require("../controllers/activityController");
-const asyncHandler = require("../utils/asyncHandler");
 
+const asyncHandler = require("../utils/asyncHandler");
+const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 
-router.get("/", asyncHandler(getActivitiesController));
+router.get("/", authMiddleware, asyncHandler(getActivitiesController));
 
-router.post("/", asyncHandler(createActivityController));
+router.post("/", authMiddleware, asyncHandler(createActivityController));
 
-router.delete("/", asyncHandler(clearActivitiesController));
+router.delete("/", authMiddleware, asyncHandler(clearActivitiesController));
 
 module.exports = router;

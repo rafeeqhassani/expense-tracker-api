@@ -7,21 +7,27 @@ const {
 const apiResponse = require("../utils/apiResponse");
 
 async function getActivitiesController(request, response) {
-  const activities = await getAllActivities();
+  const userId = request.user.id;
+
+  const activities = await getAllActivities(userId);
 
   apiResponse(response, 200, activities);
 }
 
 async function createActivityController(request, response) {
+  const userId = request.user.id;
+
   const { type, message } = request.body;
 
-  const activity = await createActivity(type, message);
+  const activity = await createActivity(userId, type, message);
 
   apiResponse(response, 201, activity);
 }
 
 async function clearActivitiesController(request, response) {
-  await clearActivities();
+  const userId = request.user.id;
+
+  await clearActivities(userId);
 
   apiResponse(response, 200, null, "Activities cleared successfully");
 }

@@ -12,19 +12,42 @@ const {
 } = require("../controllers/expenseController");
 
 const asyncHandler = require("../utils/asyncHandler");
+const authMiddleware = require("../middleware/authMiddleware");
 
 const validateExpense = require("../middleware/validateExpense");
 
-router.get("/", asyncHandler(getExpensesController));
+router.get("/", authMiddleware, asyncHandler(getExpensesController));
 
-router.post("/", validateExpense, asyncHandler(createExpenseController));
+router.post(
+  "/",
+  authMiddleware,
+  validateExpense,
+  asyncHandler(createExpenseController),
+);
 
-router.put("/:id", validateExpense, asyncHandler(updateExpenseController));
-router.delete("/bulk", asyncHandler(deleteSelectedExpensesController));
-router.delete("/:id", asyncHandler(deleteExpenseController));
+router.put(
+  "/:id",
+  authMiddleware,
+  validateExpense,
+  asyncHandler(updateExpenseController),
+);
+router.delete(
+  "/bulk",
+  authMiddleware,
+  asyncHandler(deleteSelectedExpensesController),
+);
+router.delete("/:id", authMiddleware, asyncHandler(deleteExpenseController));
 
-router.patch("/:id/restore", asyncHandler(restoreExpenseController));
+router.patch(
+  "/:id/restore",
+  authMiddleware,
+  asyncHandler(restoreExpenseController),
+);
 
-router.patch("/clear-all", asyncHandler(clearAllExpensesController));
+router.patch(
+  "/clear-all",
+  authMiddleware,
+  asyncHandler(clearAllExpensesController),
+);
 
 module.exports = router;

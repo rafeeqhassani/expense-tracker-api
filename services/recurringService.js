@@ -113,7 +113,7 @@ function createGeneratedExpense(recurringExpense, occurrenceDate) {
  *
  * @returns {Promise<number>} The number of expenses generated.
  */
-async function processRecurringExpense(recurringExpense, today) {
+async function processRecurringExpense(recurringExpense, today, userId) {
   const missingDates = generateMissingDates(
     today,
     new Date(recurringExpense.lastGeneratedDate),
@@ -129,7 +129,7 @@ async function processRecurringExpense(recurringExpense, today) {
       recurringExpense,
       occurrenceDate,
     );
-    await createExpenseQuery(generatedExpense);
+    await createExpenseQuery(userId, generatedExpense);
   }
 
   const latestGeneratedDate = missingDates[missingDates.length - 1]
@@ -148,14 +148,18 @@ async function processRecurringExpense(recurringExpense, today) {
  *
  * @returns {Promise<number>} Total number of expenses generated.
  */
-async function processRecurringExpenses() {
+async function processRecurringExpenses(userId) {
   const today = new Date();
-  const recurringExpenses = await getRecurringExpensesQuery();
+  const recurringExpenses = await getRecurringExpensesQuery(userId);
 
   let generatedCount = 0;
 
   for (const recurringExpense of recurringExpenses) {
-    generatedCount += await processRecurringExpense(recurringExpense, today);
+    generatedCount += await processRecurringExpense(
+      recurringExpense,
+      today,
+      userId,
+    );
   }
 
   return generatedCount;

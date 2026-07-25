@@ -4,9 +4,9 @@ const {
 } = require("../controllers/categoryController");
 
 const asyncHandler = require("../utils/asyncHandler");
-
+const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 
-router.get("/", asyncHandler(getCategoriesController));
+router.get("/", authMiddleware, asyncHandler(getCategoriesController));
 
 module.exports = router;

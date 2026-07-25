@@ -5,11 +5,12 @@ const {
 } = require("../controllers/budgetController");
 
 const asyncHandler = require("../utils/asyncHandler");
+const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.get("/", asyncHandler(getBudgetController));
+router.get("/", authMiddleware, asyncHandler(getBudgetController));
 
-router.put("/", asyncHandler(saveBudgetController));
+router.put("/", authMiddleware, asyncHandler(saveBudgetController));
 
 module.exports = router;

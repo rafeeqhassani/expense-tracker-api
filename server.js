@@ -6,6 +6,7 @@ const budgetRoutes = require("./routes/budget");
 const analyticsRoutes = require("./routes/analytics");
 const categoryRoutes = require("./routes/category");
 const activityRoutes = require("./routes/activity");
+const authRoutes = require("./routes/authRoutes");
 
 const errorHandler = require("./middleware/errorHandler");
 
@@ -18,6 +19,7 @@ app.use("/api/budget", budgetRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/activities", activityRoutes);
+app.use("/api/auth", authRoutes);
 
 app.use(errorHandler);
 

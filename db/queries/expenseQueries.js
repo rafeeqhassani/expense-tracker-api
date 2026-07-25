@@ -13,12 +13,12 @@ const ALLOWED_SORT_FIELDS = {
  * getAllExpenses and getExpensesCountQuery, so filtering logic
  * only ever lives in one place.
  */
-function buildExpenseFilterClause(filters) {
+function buildExpenseFilterClause(userId, filters) {
   const { search, month, startDate, endDate } = filters;
 
-  const conditions = ["deleted = false"];
-  const values = [];
-  let paramIndex = 1;
+  const conditions = ["user_id = $1", "deleted = false"];
+  const values = [userId];
+  let paramIndex = 2;
 
   if (search) {
     conditions.push(`
@@ -57,12 +57,14 @@ function buildExpenseFilterClause(filters) {
   };
 }
 
-async function getAllExpenses(filters) {
+async function getAllExpenses(userId, filters) {
   const { page, limit, sortBy, sortOrder } = filters;
   const offset = (page - 1) * limit;
 
-  const { whereClause, values, nextParamIndex } =
-    buildExpenseFilterClause(filters);
+  const { whereClause, values, nextParamIndex } = buildExpenseFilterClause(
+    userId,
+    filters,
+  );
 
   const sortColumn = ALLOWED_SORT_FIELDS[sortBy] || "date";
   const sortDirection = sortOrder === "asc" ? "ASC" : "DESC";
@@ -83,8 +85,8 @@ async function getAllExpenses(filters) {
   return result.rows.map(mapExpenseFromDatabase);
 }
 
-async function getExpensesCountQuery(filters) {
-  const { whereClause, values } = buildExpenseFilterClause(filters);
+async function getExpensesCountQuery(userId, filters) {
+  const { whereClause, values } = buildExpenseFilterClause(userId, filters);
 
   const query = `
     SELECT COUNT(*)
@@ -97,10 +99,11 @@ async function getExpensesCountQuery(filters) {
   return Number(result.rows[0].count);
 }
 
-async function createExpenseQuery(expense) {
+async function createExpenseQuery(userId, expense) {
   const query = `
     INSERT INTO expenses (
       id,
+      user_id,
       title,
       amount,
       category,
@@ -110,12 +113,13 @@ async function createExpenseQuery(expense) {
       deleted,
       recurring_id
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     RETURNING *
   `;
 
   const values = [
     expense.id,
+    userId,
     expense.title,
     expense.amount,
     expense.category,
@@ -131,7 +135,7 @@ async function createExpenseQuery(expense) {
   return mapExpenseFromDatabase(result.rows[0]);
 }
 
-async function updateExpenseQuery(id, expense) {
+async function updateExpenseQuery(id, userId, expense) {
   const query = `
     UPDATE expenses
     SET
@@ -142,6 +146,7 @@ async function updateExpenseQuery(id, expense) {
       recurring = $5,
       last_generated_date = $6
     WHERE id = $7
+    AND user_id = $8
     RETURNING *
   `;
 
@@ -153,6 +158,7 @@ async function updateExpenseQuery(id, expense) {
     expense.recurring,
     expense.lastGeneratedDate,
     id,
+    userId,
   ];
 
   const result = await pool.query(query, values);
@@ -177,70 +183,76 @@ async function updateLastGeneratedDateQuery(id, lastGeneratedDate) {
   return mapExpenseFromDatabase(result.rows[0]);
 }
 
-async function deleteExpenseQuery(id) {
+async function deleteExpenseQuery(id, userId) {
   const query = `
     UPDATE expenses
     SET deleted = true
     WHERE id = $1
+    AND user_id = $2
+
     RETURNING *
   `;
 
-  const result = await pool.query(query, [id]);
+  const result = await pool.query(query, [id, userId]);
 
   if (!result.rows[0]) return null;
 
   return mapExpenseFromDatabase(result.rows[0]);
 }
 
-async function restoreExpenseQuery(id) {
+async function restoreExpenseQuery(id, userId) {
   const query = `
     UPDATE expenses
     SET deleted = false
     WHERE id = $1
+    AND user_id = $2
     RETURNING *
   `;
 
-  const result = await pool.query(query, [id]);
+  const result = await pool.query(query, [id, userId]);
 
   if (!result.rows[0]) return null;
 
   return mapExpenseFromDatabase(result.rows[0]);
 }
 
-async function clearAllExpensesQuery() {
+async function clearAllExpensesQuery(userId) {
   const query = `
     UPDATE expenses
     SET deleted = true
+    WHERE user_id = $1
     RETURNING *
   `;
 
-  const result = await pool.query(query);
+  const result = await pool.query(query, [userId]);
 
   return result.rows.map(mapExpenseFromDatabase);
 }
 
-async function getRecurringExpensesQuery() {
+async function getRecurringExpensesQuery(userId) {
   const query = `
     SELECT *
     FROM expenses
-    WHERE recurring != 'none'
+    WHERE user_id = $1
+    AND recurring != 'none'
       AND deleted = false
   `;
 
-  const result = await pool.query(query);
+  const result = await pool.query(query, [userId]);
 
   return result.rows.map(mapExpenseFromDatabase);
 }
 
-async function deleteSelectedExpenses(ids) {
+async function deleteSelectedExpenses(ids, userId) {
   const query = `
     UPDATE expenses
     SET deleted = true
     WHERE id = ANY($1)
+    AND user_id = $2
     RETURNING *
   `;
 
-  const result = await pool.query(query, [ids]);
+  const result = await pool.query(query, [ids, userId]);
 
   return result.rows.map(mapExpenseFromDatabase);
 }

@@ -4,11 +4,9 @@ const {
 } = require("../db/queries/budgetQueries");
 
 const apiResponse = require("../utils/apiResponse");
-const { TEMP_USER_ID } = require("../constants/appConstants");
 
 async function getBudgetController(request, response) {
-  // Temporary user ID until authentication is added
-  const userId = TEMP_USER_ID;
+  const userId = request.user.id;
 
   const budget = await getBudgetByUserId(userId);
 
@@ -16,7 +14,7 @@ async function getBudgetController(request, response) {
 }
 
 async function saveBudgetController(request, response) {
-  const userId = TEMP_USER_ID;
+  const userId = request.user.id;
 
   const budget = request.body;
 
