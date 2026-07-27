@@ -21,7 +21,21 @@ const registerController = async (req, res) => {
     passwordHash,
   });
 
-  apiResponse(res, 201, user, "User registered successfully");
+  const token = generateToken(user);
+
+  apiResponse(
+    res,
+    201,
+    {
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+    },
+    "User registered successfully",
+  );
 };
 
 const loginController = async (req, res) => {
@@ -56,7 +70,32 @@ const loginController = async (req, res) => {
   );
 };
 
+const demoController = async (req, res) => {
+  const user = await findUserByEmail("demo@expense.com");
+
+  if (!user) {
+    throw new AppError("Demo account not found", 404);
+  }
+
+  const token = generateToken(user);
+
+  apiResponse(
+    res,
+    200,
+    {
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+    },
+    "Demo login successful",
+  );
+};
+
 module.exports = {
   registerController,
   loginController,
+  demoController,
 };

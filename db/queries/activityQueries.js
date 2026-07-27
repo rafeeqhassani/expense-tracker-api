@@ -29,12 +29,14 @@ async function createActivity(userId, type, message) {
 }
 
 async function clearActivities(userId) {
+  console.log("CLEAR QUERY USER:", userId);
+
   const query = `
     DELETE FROM activities
     WHERE user_id = $1
   `;
 
-  await pool.query(query);
+  await pool.query(query, [userId]);
 }
 
 module.exports = {
