@@ -6,7 +6,7 @@ const {
 } = require("../controllers/authController");
 
 const asyncHandler = require("../utils/asyncHandler");
-
+const validateAuth = require("../middleware/validateAuth");
 const authMiddleware = require("../middleware/authMiddleware");
 const { findUserByEmail } = require("../db/queries/userQueries");
 
@@ -24,7 +24,7 @@ router.get("/me", authMiddleware, async (req, res) => {
   });
 });
 
-router.post("/register", asyncHandler(registerController));
-router.post("/login", asyncHandler(loginController));
+router.post("/register", validateAuth, asyncHandler(registerController));
+router.post("/login", validateAuth, asyncHandler(loginController));
 router.post("/demo", asyncHandler(demoController));
 module.exports = router;

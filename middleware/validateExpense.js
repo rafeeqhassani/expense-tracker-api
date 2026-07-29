@@ -1,5 +1,7 @@
 const AppError = require("../utils/AppError");
 
+const MAX_AMOUNT = 999999999.99;
+const DECIMAL_PATTERN = /^\d+(\.\d{1,2})?$/;
 const NUMERIC_PATTERN_MESSAGE = "cannot be a number";
 
 /**
@@ -7,7 +9,9 @@ const NUMERIC_PATTERN_MESSAGE = "cannot be a number";
  * e.g. "42" or "3.14".
  */
 function isNumericString(value) {
-  return value !== "" && !isNaN(Number(value));
+  const trimmedValue = value.trim();
+
+  return trimmedValue !== "" && !isNaN(Number(trimmedValue));
 }
 
 /**
@@ -44,6 +48,14 @@ function validateAmount(amount) {
     return "Amount must be a number";
   }
 
+  if (!DECIMAL_PATTERN.test(String(amount))) {
+    return "Amount can have maximum 2 decimal places";
+  }
+
+  if (numericAmount > MAX_AMOUNT) {
+    return "Amount is too large";
+  }
+
   if (numericAmount <= 0) {
     return "Amount must be positive";
   }
@@ -56,6 +68,7 @@ function validateAmount(amount) {
  *
  * @returns {string|null} An error message, or null if valid.
  */
+
 function validateDate(date) {
   if (!date) {
     return "Date is required";
@@ -63,6 +76,10 @@ function validateDate(date) {
 
   if (isNaN(Date.parse(date))) {
     return "Invalid date";
+  }
+
+  if (new Date(date) > new Date()) {
+    return "Date cannot be in the future";
   }
 
   return null;
@@ -73,7 +90,12 @@ function validateDate(date) {
  * before it reaches the route handler.
  */
 function validateExpense(req, res, next) {
-  const { title, amount, category, date } = req.body;
+  const title = req.body.title?.trim();
+  const category = req.body.category?.trim();
+  const { amount, date } = req.body;
+
+  req.body.title = title;
+  req.body.category = category;
 
   const titleError = validateTextField(title, "Title");
   if (titleError) {
@@ -82,17 +104,17 @@ function validateExpense(req, res, next) {
 
   const amountError = validateAmount(amount);
   if (amountError) {
-    return next(new AppError(titleError, 400));
+    return next(new AppError(amountError, 400));
   }
 
   const categoryError = validateTextField(category, "Category");
   if (categoryError) {
-    return next(new AppError(titleError, 400));
+    return next(new AppError(categoryError, 400));
   }
 
   const dateError = validateDate(date);
   if (dateError) {
-    return next(new AppError(titleError, 400));
+    return next(new AppError(dateError, 400));
   }
 
   next();

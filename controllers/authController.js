@@ -5,7 +5,8 @@ const generateToken = require("../utils/generateToken");
 const AppError = require("../utils/AppError");
 
 const registerController = async (req, res) => {
-  const { name, email, password } = req.body;
+  const name = req.body.name.trim();
+  const { email, password } = req.body;
 
   const existingUser = await findUserByEmail(email);
 
@@ -39,7 +40,9 @@ const registerController = async (req, res) => {
 };
 
 const loginController = async (req, res) => {
-  const { email, password } = req.body;
+  const { password } = req.body;
+
+  const email = req.body.email.trim().toLowerCase();
 
   const user = await findUserByEmail(email);
 

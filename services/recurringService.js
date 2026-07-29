@@ -136,7 +136,11 @@ async function processRecurringExpense(recurringExpense, today, userId) {
     .toISOString()
     .split("T")[0];
 
-  await updateLastGeneratedDateQuery(recurringExpense.id, latestGeneratedDate);
+  await updateLastGeneratedDateQuery(
+    recurringExpense.id,
+    userId,
+    latestGeneratedDate,
+  );
 
   return missingDates.length;
 }

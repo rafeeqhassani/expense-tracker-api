@@ -168,15 +168,16 @@ async function updateExpenseQuery(id, userId, expense) {
   return mapExpenseFromDatabase(result.rows[0]);
 }
 
-async function updateLastGeneratedDateQuery(id, lastGeneratedDate) {
+async function updateLastGeneratedDateQuery(id, userId, lastGeneratedDate) {
   const query = `
     UPDATE expenses
     SET last_generated_date = $1
     WHERE id = $2
+    AND user_id = $3
     RETURNING *
   `;
 
-  const result = await pool.query(query, [lastGeneratedDate, id]);
+  const result = await pool.query(query, [lastGeneratedDate, id, userId]);
 
   if (!result.rows[0]) return null;
 
