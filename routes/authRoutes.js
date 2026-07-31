@@ -12,17 +12,21 @@ const { findUserByEmail } = require("../db/queries/userQueries");
 
 const router = express.Router();
 
-router.get("/me", authMiddleware, async (req, res) => {
-  const user = await findUserByEmail(req.user.email);
+router.get(
+  "/me",
+  authMiddleware,
+  asyncHandler(async (req, res) => {
+    const user = await findUserByEmail(req.user.email);
 
-  res.json({
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    },
-  });
-});
+    res.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  }),
+);
 
 router.post("/register", validateAuth, asyncHandler(registerController));
 router.post("/login", validateAuth, asyncHandler(loginController));

@@ -2,16 +2,19 @@ const pool = require("../db");
 
 const mapActivityFromDatabase = require("../../utils/mapActivityFromDatabase");
 
-async function getAllActivities(userId) {
+async function getAllActivities(userId, filters) {
+  const { page, limit } = filters;
+  const offset = (page - 1) * limit;
+
   const query = `
     SELECT *
     FROM activities
     WHERE user_id = $1
     ORDER BY created_at DESC
-    LIMIT 10
+    LIMIT $2 OFFSET $3
   `;
 
-  const result = await pool.query(query, [userId]);
+  const result = await pool.query(query, [userId, limit, offset]);
 
   return result.rows.map(mapActivityFromDatabase);
 }
@@ -28,6 +31,18 @@ async function createActivity(userId, type, message) {
   return mapActivityFromDatabase(result.rows[0]);
 }
 
+async function getActivityCount(userId) {
+  const query = `
+    SELECT COUNT(*) 
+    FROM activities
+    WHERE user_id = $1
+  `;
+
+  const result = await pool.query(query, [userId]);
+
+  return Number(result.rows[0].count);
+}
+
 async function clearActivities(userId) {
   console.log("CLEAR QUERY USER:", userId);
 
@@ -42,5 +57,6 @@ async function clearActivities(userId) {
 module.exports = {
   getAllActivities,
   createActivity,
+  getActivityCount,
   clearActivities,
 };

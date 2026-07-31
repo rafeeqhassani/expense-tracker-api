@@ -37,6 +37,7 @@ async function getExpensesController(request, response) {
   const expenses = await getAllExpenses(userId, filters);
   const totalExpenses = await getExpensesCountQuery(userId, filters);
   const totalPages = Math.ceil(totalExpenses / limit);
+  const hasMore = page < totalPages;
 
   apiResponse(
     response,
@@ -48,6 +49,7 @@ async function getExpensesController(request, response) {
         limit,
         totalExpenses,
         totalPages,
+        hasMore,
       },
     },
     "Expenses fetched successfully",

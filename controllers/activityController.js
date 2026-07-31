@@ -1,6 +1,7 @@
 const {
   getAllActivities,
   createActivity,
+  getActivityCount,
   clearActivities,
 } = require("../db/queries/activityQueries");
 
@@ -9,9 +10,25 @@ const apiResponse = require("../utils/apiResponse");
 async function getActivitiesController(request, response) {
   const userId = request.user.id;
 
-  const activities = await getAllActivities(userId);
+  const filters = {
+    page: Number(request.query.page) || 1,
+    limit: Number(request.query.limit) || 10,
+  };
 
-  apiResponse(response, 200, activities);
+  const activities = await getAllActivities(userId, filters);
+
+  const total = await getActivityCount(userId);
+
+  const hasMore = filters.page * filters.limit < total;
+
+  apiResponse(response, 200, {
+    activities,
+    pagination: {
+      page: filters.page,
+      limit: filters.limit,
+      hasMore,
+    },
+  });
 }
 
 async function createActivityController(request, response) {
