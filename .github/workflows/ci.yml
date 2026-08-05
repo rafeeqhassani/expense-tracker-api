@@ -8,6 +8,13 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
+      CLIENT_URL: ${{ secrets.CLIENT_URL }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,9 +29,3 @@ jobs:
 
       - name: Run tests
         run: npm test
-
-        env:
-  DATABASE_URL: ${{ secrets.DATABASE_URL }}
-  JWT_SECRET: ${{ secrets.JWT_SECRET }}
-  JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
-  CLIENT_URL: ${{ secrets.CLIENT_URL }}
