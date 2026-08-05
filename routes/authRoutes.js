@@ -7,10 +7,26 @@ const {
 
 const asyncHandler = require("../utils/asyncHandler");
 const validateAuth = require("../middleware/validateAuth");
+const { authLimiter } = require("../middleware/rateLimiter");
 const authMiddleware = require("../middleware/authMiddleware");
 const { findUserByEmail } = require("../db/queries/userQueries");
 
 const router = express.Router();
+
+/**
+ * @swagger
+ * /api/auth/me:
+ *   get:
+ *     summary: Get current logged-in user
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Current user details
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ */
 
 router.get(
   "/me",
@@ -28,7 +44,14 @@ router.get(
   }),
 );
 
-router.post("/register", validateAuth, asyncHandler(registerController));
-router.post("/login", validateAuth, asyncHandler(loginController));
+router.post(
+  "/register",
+  authLimiter,
+  validateAuth,
+  asyncHandler(registerController),
+);
+
+router.post("/login", authLimiter, validateAuth, asyncHandler(loginController));
+
 router.post("/demo", asyncHandler(demoController));
 module.exports = router;

@@ -3,6 +3,7 @@ const {
   createActivity,
   getActivityCount,
   clearActivities,
+  cleanupOldActivities,
 } = require("../db/queries/activityQueries");
 
 const apiResponse = require("../utils/apiResponse");
@@ -37,6 +38,7 @@ async function createActivityController(request, response) {
   const { type, message } = request.body;
 
   const activity = await createActivity(userId, type, message);
+  await cleanupOldActivities(userId);
 
   apiResponse(response, 201, activity);
 }

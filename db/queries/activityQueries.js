@@ -44,11 +44,25 @@ async function getActivityCount(userId) {
 }
 
 async function clearActivities(userId) {
-  console.log("CLEAR QUERY USER:", userId);
-
   const query = `
     DELETE FROM activities
     WHERE user_id = $1
+  `;
+
+  await pool.query(query, [userId]);
+}
+
+async function cleanupOldActivities(userId) {
+  const query = `
+    DELETE FROM activities
+    WHERE user_id = $1
+    AND id NOT IN (
+      SELECT id
+      FROM activities
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+      LIMIT 100
+    )
   `;
 
   await pool.query(query, [userId]);
@@ -59,4 +73,5 @@ module.exports = {
   createActivity,
   getActivityCount,
   clearActivities,
+  cleanupOldActivities,
 };

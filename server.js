@@ -1,30 +1,31 @@
-const express = require("express");
-const cors = require("cors");
+require("dotenv").config();
 
-const expenseRoutes = require("./routes/expenses");
-const budgetRoutes = require("./routes/budget");
-const analyticsRoutes = require("./routes/analytics");
-const categoryRoutes = require("./routes/category");
-const activityRoutes = require("./routes/activity");
-const authRoutes = require("./routes/authRoutes");
+const validateEnv = require("./config/env");
+validateEnv();
 
-const errorHandler = require("./middleware/errorHandler");
-
-const app = express();
-
-app.use(cors());
-app.use(express.json());
-app.use("/api/expenses", expenseRoutes);
-app.use("/api/budget", budgetRoutes);
-app.use("/api/analytics", analyticsRoutes);
-app.use("/api/categories", categoryRoutes);
-app.use("/api/activities", activityRoutes);
-app.use("/api/auth", authRoutes);
-
-app.use(errorHandler);
+const app = require("./app");
+const pool = require("./db/db");
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);
 });
+
+async function shutdown(signal) {
+  console.log(`${signal} received. Shutting down...`);
+
+  server.close(async () => {
+    try {
+      await pool.end();
+      console.log("Database connection closed.");
+      process.exit(0);
+    } catch (error) {
+      console.error("Error during shutdown:", error);
+      process.exit(1);
+    }
+  });
+}
+
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
