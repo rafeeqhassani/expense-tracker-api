@@ -10,8 +10,8 @@ describe("Expenses API", () => {
 
   test("POST /api/expenses should create expense", async () => {
     const loginResponse = await request(app).post("/api/auth/login").send({
-      email: "mrbhasni106@gmail.com",
-      password: "2311853",
+      email: "test@user.com",
+      password: "password123",
     });
 
     const token = loginResponse.body.data.token;
@@ -38,8 +38,8 @@ describe("Expenses API", () => {
 
 test("GET /api/expenses should return user expenses", async () => {
   const loginResponse = await request(app).post("/api/auth/login").send({
-    email: "mrbhasni106@gmail.com",
-    password: "2311853",
+    email: "test@user.com",
+    password: "password123",
   });
 
   const token = loginResponse.body.data.token;

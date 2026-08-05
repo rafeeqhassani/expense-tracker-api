@@ -5,8 +5,8 @@ let token;
 
 beforeAll(async () => {
   const response = await request(app).post("/api/auth/login").send({
-    email: "mrbhasni106@gmail.com",
-    password: "2311853",
+    email: "test@user.com",
+    password: "password123",
   });
 
   token = response.body.data.token;
