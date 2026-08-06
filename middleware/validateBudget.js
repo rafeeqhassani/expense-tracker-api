@@ -8,6 +8,10 @@ function validateBudget(req, res, next) {
   if (monthlyLimit !== undefined) {
     const monthly = Number(monthlyLimit);
 
+    if (Number.isNaN(monthly)) {
+      return next(new AppError("Monthly budget must be a number", 400));
+    }
+
     if (monthly < 0) {
       return next(new AppError("Monthly budget cannot be negative", 400));
     }
@@ -20,6 +24,10 @@ function validateBudget(req, res, next) {
   if (categoryLimits) {
     for (const [category, limit] of Object.entries(categoryLimits)) {
       const categoryLimit = Number(limit);
+
+      if (Number.isNaN(categoryLimit)) {
+        return next(new AppError(`${category} budget must be a number`, 400));
+      }
 
       if (categoryLimit < 0) {
         return next(new AppError(`${category} budget cannot be negative`, 400));

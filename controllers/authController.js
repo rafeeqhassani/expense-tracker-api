@@ -1,4 +1,5 @@
 const { createUser, findUserByEmail } = require("../db/queries/userQueries");
+
 const apiResponse = require("../utils/apiResponse");
 const bcrypt = require("bcrypt");
 const generateToken = require("../utils/generateToken");
@@ -67,8 +68,9 @@ const AppError = require("../utils/AppError");
  */
 
 const registerController = async (req, res) => {
-  const name = req.body.name.trim();
-  const { email, password } = req.body;
+  const name = req.body.name?.trim();
+  const password = req.body.password;
+  const email = req.body.email?.trim().toLowerCase();
 
   const existingUser = await findUserByEmail(email);
 
@@ -86,7 +88,7 @@ const registerController = async (req, res) => {
 
   const token = generateToken(user);
 
-  apiResponse(
+  return apiResponse(
     res,
     201,
     {
@@ -162,7 +164,7 @@ const registerController = async (req, res) => {
 const loginController = async (req, res) => {
   const { password } = req.body;
 
-  const email = req.body.email.trim().toLowerCase();
+  const email = req.body.email?.trim().toLowerCase();
 
   const user = await findUserByEmail(email);
 
@@ -178,7 +180,7 @@ const loginController = async (req, res) => {
 
   const token = generateToken(user);
 
-  apiResponse(
+  return apiResponse(
     res,
     200,
     {
@@ -202,7 +204,7 @@ const demoController = async (req, res) => {
 
   const token = generateToken(user);
 
-  apiResponse(
+  return apiResponse(
     res,
     200,
     {

@@ -1,4 +1,6 @@
 function mapDashboardFromDatabase(data) {
+  if (!data) return null;
+
   return {
     expensesToday: Number(data.expenses_today),
     expensesThisWeek: Number(data.expenses_this_week),

@@ -1,4 +1,6 @@
 function mapAnalyticsFromDatabase(data) {
+  if (!data) return null;
+
   return {
     overall: {
       totalAmount: Number(data.total_amount),

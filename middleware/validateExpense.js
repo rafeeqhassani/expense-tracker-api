@@ -37,18 +37,20 @@ function validateTextField(value, fieldName) {
  *
  * @returns {string|null} An error message, or null if valid.
  */
+
 function validateAmount(amount) {
   if (amount === undefined || amount === null || amount === "") {
     return "Amount is required";
   }
 
-  const numericAmount = Number(amount);
+  const normalizedAmount = String(amount).trim();
+  const numericAmount = Number(normalizedAmount);
 
   if (isNaN(numericAmount)) {
     return "Amount must be a number";
   }
 
-  if (!DECIMAL_PATTERN.test(String(amount))) {
+  if (!DECIMAL_PATTERN.test(normalizedAmount)) {
     return "Amount can have maximum 2 decimal places";
   }
 

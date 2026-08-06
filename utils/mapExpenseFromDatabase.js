@@ -1,4 +1,5 @@
 function mapExpenseFromDatabase(expense) {
+  if (!expense) return null;
   return {
     id: expense.id,
     title: expense.title,

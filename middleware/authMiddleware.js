@@ -9,10 +9,17 @@ function authMiddleware(req, res, next) {
       throw new AppError("Authentication required", 401);
     }
 
-    const token = authHeader.split(" ")[1];
+    const [scheme, token] = authHeader.split(" ");
+
+    if (scheme !== "Bearer" || !token) {
+      throw new AppError("Invalid authorization format", 401);
+    }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    if (!decoded.id) {
+      throw new AppError("Invalid token payload", 401);
+    }
     req.user = decoded;
 
     next();

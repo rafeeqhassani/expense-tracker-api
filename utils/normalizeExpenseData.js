@@ -1,4 +1,10 @@
+const AppError = require("./AppError");
+
 function normalizeExpenseData(data, existingId = null) {
+  if (!data) {
+    throw new AppError("Expense data is required", 400);
+  }
+
   const parsedAmount = Number(String(data.amount).trim());
   const isValidDate = data.date && !isNaN(Date.parse(data.date));
 

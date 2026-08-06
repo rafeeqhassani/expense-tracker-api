@@ -6,6 +6,8 @@
  * @returns {{ id: any, type: string, message: string, createdAt: any }}
  */
 function mapActivityFromDatabase(activityRow) {
+  if (!activityRow) return null;
+
   return {
     id: activityRow.id,
     type: activityRow.type,

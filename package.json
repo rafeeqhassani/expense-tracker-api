@@ -1,15 +1,26 @@
 {
   "name": "expense-tracker-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "RESTful Expense Tracker API built with Express.js and PostgreSQL",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "migrate": "node db/migrate.js",
+    "dev": "cross-env NODE_ENV=development node server.js",
+    "start": "cross-env NODE_ENV=production node server.js",
+    "start:test": "cross-env NODE_ENV=test node server.js",
+    "migrate:dev": "cross-env NODE_ENV=development node db/migrate.js",
+    "migrate:test": "cross-env NODE_ENV=test node db/migrate.js",
+    "migrate:production": "cross-env NODE_ENV=production node db/migrate.js",
     "test": "jest"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "express",
+    "nodejs",
+    "postgresql",
+    "jwt",
+    "rest-api",
+    "expense-tracker"
+  ],
+  "author": "Rafeeq Brohi",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
@@ -26,6 +37,7 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "cross-env": "^10.1.0",
     "jest": "^30.4.2",
     "supertest": "^7.2.2"
   },

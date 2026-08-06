@@ -6,8 +6,13 @@ async function createUser({ name, email, passwordHash }) {
     INSERT INTO users
     (name, email, password_hash)
     VALUES ($1, $2, $3)
-    RETURNING *
-    `,
+    RETURNING
+      id,
+      name,
+      email,
+      created_at,
+      updated_at
+ `,
     [name, email, passwordHash],
   );
 
@@ -17,7 +22,13 @@ async function createUser({ name, email, passwordHash }) {
 async function findUserByEmail(email) {
   const result = await pool.query(
     `
-    SELECT *
+    SELECT
+      id,
+      name,
+      email,
+      password_hash,
+      created_at,
+      updated_at
     FROM users
     WHERE email = $1
     `,
@@ -27,7 +38,26 @@ async function findUserByEmail(email) {
   return result.rows[0];
 }
 
+async function findUserById(id) {
+  const result = await pool.query(
+    `
+    SELECT
+      id,
+      name,
+      email,
+      created_at,
+      updated_at
+    FROM users
+    WHERE id = $1
+    `,
+    [id],
+  );
+
+  return result.rows[0];
+}
+
 module.exports = {
   createUser,
   findUserByEmail,
+  findUserById,
 };

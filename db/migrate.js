@@ -80,6 +80,7 @@ async function runMigrations() {
     console.log("All migrations completed");
   } catch (error) {
     console.error("Migration failed:", error);
+    process.exit(1);
   } finally {
     await pool.end();
   }

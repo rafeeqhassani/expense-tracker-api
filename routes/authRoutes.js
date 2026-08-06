@@ -5,11 +5,13 @@ const {
   demoController,
 } = require("../controllers/authController");
 
+const { findUserById } = require("../db/queries/userQueries");
+const AppError = require("../utils/AppError");
+
 const asyncHandler = require("../utils/asyncHandler");
 const validateAuth = require("../middleware/validateAuth");
 const { authLimiter } = require("../middleware/rateLimiter");
 const authMiddleware = require("../middleware/authMiddleware");
-const { findUserByEmail } = require("../db/queries/userQueries");
 
 const router = express.Router();
 
@@ -32,7 +34,11 @@ router.get(
   "/me",
   authMiddleware,
   asyncHandler(async (req, res) => {
-    const user = await findUserByEmail(req.user.email);
+    const user = await findUserById(req.user.id);
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
 
     res.json({
       user: {
@@ -53,5 +59,5 @@ router.post(
 
 router.post("/login", authLimiter, validateAuth, asyncHandler(loginController));
 
-router.post("/demo", asyncHandler(demoController));
+router.post("/demo", authLimiter, asyncHandler(demoController));
 module.exports = router;

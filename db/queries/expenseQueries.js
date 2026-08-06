@@ -33,9 +33,21 @@ function buildExpenseFilterClause(userId, filters) {
   }
 
   if (month) {
-    conditions.push(`EXTRACT(MONTH FROM date) = $${paramIndex}`);
-    values.push(Number(month));
-    paramIndex++;
+    const [year, monthNumber] = month.split("-");
+
+    const monthStartDate = `${year}-${monthNumber}-01`;
+
+    const nextMonthDate = new Date(Number(year), Number(monthNumber), 1);
+
+    const monthEndDate = `${nextMonthDate.getFullYear()}-${String(
+      nextMonthDate.getMonth() + 1,
+    ).padStart(2, "0")}-01`;
+
+    conditions.push(`date >= $${paramIndex} AND date < $${paramIndex + 1}`);
+
+    values.push(monthStartDate, monthEndDate);
+
+    paramIndex += 2;
   }
 
   if (startDate) {
@@ -147,6 +159,7 @@ async function updateExpenseQuery(id, userId, expense) {
       last_generated_date = $6
     WHERE id = $7
     AND user_id = $8
+    AND deleted = false
     RETURNING *
   `;
 
@@ -207,6 +220,7 @@ async function restoreExpenseQuery(id, userId) {
     SET deleted = false
     WHERE id = $1
     AND user_id = $2
+    AND deleted = true
     RETURNING *
   `;
 
@@ -222,6 +236,7 @@ async function clearAllExpensesQuery(userId) {
     UPDATE expenses
     SET deleted = true
     WHERE user_id = $1
+    AND deleted = false
     RETURNING *
   `;
 
@@ -235,8 +250,9 @@ async function getRecurringExpensesQuery(userId) {
     SELECT *
     FROM expenses
     WHERE user_id = $1
+    AND recurring IS NOT NULL
     AND recurring != 'none'
-      AND deleted = false
+    AND deleted = false
   `;
 
   const result = await pool.query(query, [userId]);
@@ -250,6 +266,7 @@ async function deleteSelectedExpenses(ids, userId) {
     SET deleted = true
     WHERE id = ANY($1)
     AND user_id = $2
+    AND deleted = false
     RETURNING *
   `;
 

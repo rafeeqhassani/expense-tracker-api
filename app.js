@@ -31,7 +31,8 @@ const allowedOrigins = process.env.CLIENT_URL
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin:
+      allowedOrigins.length > 0 ? allowedOrigins : "http://localhost:5173",
   }),
 );
 
@@ -65,6 +66,13 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/activities", activityRoutes);
 app.use("/api/auth", authRoutes);
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
 
 app.use(errorHandler);
 

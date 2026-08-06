@@ -320,62 +320,6 @@ router.put(
 
 /**
  * @swagger
- * /api/expenses/{id}:
- *   delete:
- *     summary: Delete an expense
- *     tags: [Expenses]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Expense ID
- *     responses:
- *       200:
- *         description: Expense deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: Expense deleted successfully
- *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: string
- *                       example: 787f93b9-235c-4bb9-9315-b86f13fd76d7
- *                     title:
- *                       type: string
- *                       example: Grocery shopping
- *                     amount:
- *                       type: number
- *                       example: 2500
- *                     category:
- *                       type: string
- *                       example: food
- *                     date:
- *                       type: string
- *                       example: 2026-08-04
- *
- *       401:
- *         description: Unauthorized - Invalid or missing token
- *       404:
- *         description: Expense not found
- */
-
-router.delete("/:id", authMiddleware, asyncHandler(deleteExpenseController));
-
-/**
- * @swagger
  * /api/expenses/bulk:
  *   delete:
  *     summary: Delete multiple expenses
@@ -445,6 +389,62 @@ router.delete(
   authMiddleware,
   asyncHandler(deleteSelectedExpensesController),
 );
+
+/**
+ * @swagger
+ * /api/expenses/{id}:
+ *   delete:
+ *     summary: Delete an expense
+ *     tags: [Expenses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Expense ID
+ *     responses:
+ *       200:
+ *         description: Expense deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Expense deleted successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: 787f93b9-235c-4bb9-9315-b86f13fd76d7
+ *                     title:
+ *                       type: string
+ *                       example: Grocery shopping
+ *                     amount:
+ *                       type: number
+ *                       example: 2500
+ *                     category:
+ *                       type: string
+ *                       example: food
+ *                     date:
+ *                       type: string
+ *                       example: 2026-08-04
+ *
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: Expense not found
+ */
+
+router.delete("/:id", authMiddleware, asyncHandler(deleteExpenseController));
 
 /**
  * @swagger

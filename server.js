@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("./config/loadEnv");
 
 const validateEnv = require("./config/env");
 validateEnv();
@@ -9,7 +9,8 @@ const pool = require("./db/db");
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, () => {
-  console.log(`Server running on ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`Server running on port ${PORT}`);
 });
 
 async function shutdown(signal) {
@@ -29,3 +30,13 @@ async function shutdown(signal) {
 
 process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (error) => {
+  console.error("Unhandled Rejection:", error);
+  process.exit(1);
+});
